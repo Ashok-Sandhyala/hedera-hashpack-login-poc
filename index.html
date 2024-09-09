@@ -1,18 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hashpack Hedera Login</title>
-    <link rel="stylesheet" href="style.css"> <!-- Optional -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hedera Hashpack Login POC</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Hashpack Login for Hedera</h1>
+  <div class="container">
+    <h1>Hedera Hashpack Login POC</h1>
     <button id="login-button">Login with Hashpack</button>
     <p id="account-id"></p>
+    <p id="error-message"></p>
+  </div>
 
-    <!-- Include HashConnect library from CDN -->
-    <script src="https://cdn.jsdelivr.net/gh/Hashpack/hashconnect@latest/dist/hashconnect.js"></script>
-    <script src="app.js"></script>
+  <script type="module">
+    import { pairHashpack } from './app.js';
+
+    document.getElementById('login-button').addEventListener('click', async () => {
+      const accountIdElement = document.getElementById('account-id');
+      const errorMessageElement = document.getElementById('error-message');
+      const loginButton = document.getElementById('login-button');
+      
+      try {
+        const accountId = await pairHashpack();
+        loginButton.textContent = "Connected";
+        accountIdElement.textContent = `Account ID: ${accountId}`;
+        errorMessageElement.textContent = '';
+      } catch (error) {
+        errorMessageElement.textContent = `Error: ${error.message}`;
+        accountIdElement.textContent = '';
+      }
+    });
+  </script>
 </body>
 </html>

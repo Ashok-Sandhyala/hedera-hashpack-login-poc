@@ -1,29 +1,40 @@
-// Initialize HashConnect
-const hashconnect = new HashConnect();
+import { HashConnect, HashConnectConnectionState } from 'hashconnect';
+import { LedgerId } from '@hashgraph/sdk';
 
-async function loginWithHashpack() {
+
+const appMetadata = {
+    name: "Hash Demo",
+    description: "Demo description for Hashpack",
+    icons: ["https://www.npmjs.com/package/hashconnect"], 
+    url: "http://127.0.0.1" 
+};
+
+let hashconnect;
+let state = HashConnectConnectionState.Disconnected;
+let pairingData = null;
+
+export const pairHashpack = async () => {
     try {
-        // Initialize HashConnect with metadata for your app
-        const appMetadata = {
-            name: "Hedera Hashpack Login POC",
-            description: "A simple POC using Hashpack for Hedera login.",
-            icon: "https://hashpack.app/favicon.ico" // Example icon (you can replace it)
-        };
-
-        // Initialize HashConnect and save state in local storage
-        await hashconnect.init(appMetadata, "testnet", true); // testnet is for Hedera testnet, you can change to 'mainnet' for production
-        
-        // Establish a local connection with Hashpack
-        const connectionData = await hashconnect.connectToLocalWallet();
-
-        // Get and display the Hedera account ID after connection
-        const accountId = connectionData.accountIds[0];
-        document.getElementById('account-id').textContent = `Account ID: ${accountId}`;
+        hashconnect = new HashConnect(LedgerId.TESTNET, "684d701490ec476ccab189c11ca10cbe", appMetadata, true);
+        setUpHashConnectEvents();
+        await hashconnect.init();
+        hashconnect.openPairingModal();
     } catch (error) {
-        console.error("Login failed:", error);
-        document.getElementById('account-id').textContent = "Failed to log in. Please check the console for errors.";
+        console.error("Error during pairing:", error);
     }
-}
+};
 
-// Attach the login function to the button
-document.getElementById('login-button').addEventListener('click', loginWithHashpack);
+function setUpHashConnectEvents() {
+    hashconnect.pairingEvent.on((newPairing) => {
+        pairingData = newPairing;
+        document.getElementById('account-id').innerText = `Account ID: ${newPairing.accountIds[0]}`;
+    });
+
+    hashconnect.disconnectionEvent.on(() => {
+        pairingData = null;
+    });
+
+    hashconnect.connectionStatusChangeEvent.on((connectionStatus) => {
+        state = connectionStatus;
+    });
+}
